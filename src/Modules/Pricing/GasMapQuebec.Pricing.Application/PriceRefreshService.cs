@@ -11,6 +11,8 @@ public sealed class PriceRefreshService(
 {
     public async Task<int> RefreshAsync(CancellationToken cancellationToken = default)
     {
+        logger.LogInformation("Starting price refresh from the Régie essence Québec feed.");
+
         var snapshot = await priceService.GetLatestAsync(cancellationToken);
         logger.LogInformation(
             "Fetched {Count} stations from feed generated at {GeneratedAt:o}.",

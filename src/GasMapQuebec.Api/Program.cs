@@ -1,6 +1,8 @@
 using GasMapQuebec.Api;
 using GasMapQuebec.FuelLog.Infrastructure;
 using Hangfire;
+using Hangfire.Console;
+using Hangfire.Console.Extensions;
 using Hangfire.PostgreSql;
 using GasMapQuebec.Pricing.Application;
 using GasMapQuebec.Pricing.Infrastructure;
@@ -32,7 +34,12 @@ builder.Services.AddHangfire(configuration => configuration
     .UseRecommendedSerializerSettings()
     .UsePostgreSqlStorage(
         options => options.UseNpgsqlConnection(hangfireConnectionString),
-        new PostgreSqlStorageOptions { SchemaName = "hangfire" }));
+        new PostgreSqlStorageOptions { SchemaName = "hangfire" })
+    // Surface per-job logs (and progress) on the dashboard's job details page.
+    .UseConsole());
+// Routes ILogger output from the running job into the Hangfire Console, so the
+// existing logging in PriceRefreshService shows up in the dashboard.
+builder.Services.AddHangfireConsoleExtensions();
 builder.Services.AddHangfireServer();
 
 var app = builder.Build();
