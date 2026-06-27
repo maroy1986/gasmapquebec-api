@@ -1,9 +1,28 @@
 <Solution>
-  <Folder Name="/Infra/" />
+  <Folder Name="/Infra/">
+    <Project Path="gasmapquebec-api.AppHost/gasmapquebec-api.AppHost.csproj" />
+    <Project Path="gasmapquebec-api.ServiceDefaults/gasmapquebec-api.ServiceDefaults.csproj" />
+  </Folder>
   <Folder Name="/Solution Items/">
     <File Path="compose.yaml" />
   </Folder>
-  <Project Path="API/API.csproj" />
-  <Project Path="gasmapquebec-api.AppHost/gasmapquebec-api.AppHost.csproj" />
-  <Project Path="gasmapquebec-api.ServiceDefaults/gasmapquebec-api.ServiceDefaults.csproj" />
+  <Folder Name="/src/">
+    <Project Path="src/API/API.csproj" />
+  </Folder>
+  <Folder Name="/src/Shared/">
+    <Project Path="src/Shared/Shared.Abstractions/Shared.Abstractions.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Pricing/">
+    <Project Path="src/Modules/Pricing/Pricing.Domain/Pricing.Domain.csproj" />
+    <Project Path="src/Modules/Pricing/Pricing.Application/Pricing.Application.csproj" />
+    <Project Path="src/Modules/Pricing/Pricing.Infrastructure/Pricing.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/FuelLog/">
+    <Project Path="src/Modules/FuelLog/FuelLog.Domain/FuelLog.Domain.csproj" />
+    <Project Path="src/Modules/FuelLog/FuelLog.Application/FuelLog.Application.csproj" />
+    <Project Path="src/Modules/FuelLog/FuelLog.Infrastructure/FuelLog.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ArchitectureTests/ArchitectureTests.csproj" />
+  </Folder>
 </Solution>

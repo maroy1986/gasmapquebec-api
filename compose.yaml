@@ -3,5 +3,5 @@
     image: api
     build:
       context: .
-      dockerfile: API/Dockerfile
+      dockerfile: src/API/Dockerfile
 

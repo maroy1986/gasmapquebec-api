@@ -1,5 +1,13 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
-builder.AddProject<Projects.API>("api");
+var postgres = builder.AddPostgres("postgres")
+    .WithDataVolume()
+    .WithPgAdmin();
+
+var gasmapdb = postgres.AddDatabase("gasmapdb");
+
+builder.AddProject<Projects.API>("api")
+    .WithReference(gasmapdb)
+    .WaitFor(gasmapdb);
 
 builder.Build().Run();
