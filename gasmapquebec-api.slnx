@@ -1,28 +1,28 @@
 <Solution>
   <Folder Name="/Infra/">
-    <Project Path="gasmapquebec-api.AppHost/gasmapquebec-api.AppHost.csproj" />
-    <Project Path="gasmapquebec-api.ServiceDefaults/gasmapquebec-api.ServiceDefaults.csproj" />
+    <Project Path="GasMapQuebec.AppHost/GasMapQuebec.AppHost.csproj" />
+    <Project Path="GasMapQuebec.ServiceDefaults/GasMapQuebec.ServiceDefaults.csproj" />
   </Folder>
   <Folder Name="/Solution Items/">
     <File Path="compose.yaml" />
   </Folder>
   <Folder Name="/src/">
-    <Project Path="src/API/API.csproj" />
+    <Project Path="src/GasMapQuebec.Api/GasMapQuebec.Api.csproj" />
   </Folder>
   <Folder Name="/src/Shared/">
-    <Project Path="src/Shared/Shared.Abstractions/Shared.Abstractions.csproj" />
+    <Project Path="src/Shared/GasMapQuebec.Shared.Abstractions/GasMapQuebec.Shared.Abstractions.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Pricing/">
-    <Project Path="src/Modules/Pricing/Pricing.Domain/Pricing.Domain.csproj" />
-    <Project Path="src/Modules/Pricing/Pricing.Application/Pricing.Application.csproj" />
-    <Project Path="src/Modules/Pricing/Pricing.Infrastructure/Pricing.Infrastructure.csproj" />
+    <Project Path="src/Modules/Pricing/GasMapQuebec.Pricing.Domain/GasMapQuebec.Pricing.Domain.csproj" />
+    <Project Path="src/Modules/Pricing/GasMapQuebec.Pricing.Application/GasMapQuebec.Pricing.Application.csproj" />
+    <Project Path="src/Modules/Pricing/GasMapQuebec.Pricing.Infrastructure/GasMapQuebec.Pricing.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/src/Modules/FuelLog/">
-    <Project Path="src/Modules/FuelLog/FuelLog.Domain/FuelLog.Domain.csproj" />
-    <Project Path="src/Modules/FuelLog/FuelLog.Application/FuelLog.Application.csproj" />
-    <Project Path="src/Modules/FuelLog/FuelLog.Infrastructure/FuelLog.Infrastructure.csproj" />
+    <Project Path="src/Modules/FuelLog/GasMapQuebec.FuelLog.Domain/GasMapQuebec.FuelLog.Domain.csproj" />
+    <Project Path="src/Modules/FuelLog/GasMapQuebec.FuelLog.Application/GasMapQuebec.FuelLog.Application.csproj" />
+    <Project Path="src/Modules/FuelLog/GasMapQuebec.FuelLog.Infrastructure/GasMapQuebec.FuelLog.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/tests/">
-    <Project Path="tests/ArchitectureTests/ArchitectureTests.csproj" />
+    <Project Path="tests/GasMapQuebec.ArchitectureTests/GasMapQuebec.ArchitectureTests.csproj" />
   </Folder>
 </Solution>

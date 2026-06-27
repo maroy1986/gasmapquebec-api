@@ -1,5 +1,5 @@
 {
-  "appHostPath": "../gasmapquebec-api.AppHost/gasmapquebec-api.AppHost.csproj",
+  "appHostPath": "../GasMapQuebec.AppHost/GasMapQuebec.AppHost.csproj",
   "features": {
     "defaultWatchEnabled": "true"
   }

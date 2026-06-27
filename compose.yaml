@@ -3,5 +3,5 @@
     image: api
     build:
       context: .
-      dockerfile: src/API/Dockerfile
+      dockerfile: src/GasMapQuebec.Api/Dockerfile
 

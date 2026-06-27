@@ -41,14 +41,14 @@ domain."). This file captures the context that isn't obvious from the code alone
 
 ```
 src/
-  Shared/Shared.Abstractions/        # Entity, AggregateRoot, ValueObject, IRepository, IUnitOfWork, Result/Error, IDomainEvent
+  Shared/GasMapQuebec.Shared.Abstractions/   # Entity, AggregateRoot, ValueObject, IRepository, IUnitOfWork, Result/Error, IDomainEvent
   Modules/
-    Pricing/{Pricing.Domain, Pricing.Application, Pricing.Infrastructure}
-    FuelLog/{FuelLog.Domain, FuelLog.Application, FuelLog.Infrastructure}
-  API/                               # composition root: controllers, module registration, Hangfire
-tests/ArchitectureTests/             # NetArchTest rules
-gasmapquebec-api.AppHost/            # Aspire orchestrator (Postgres + api)
-gasmapquebec-api.ServiceDefaults/
+    Pricing/GasMapQuebec.Pricing.{Domain, Application, Infrastructure}
+    FuelLog/GasMapQuebec.FuelLog.{Domain, Application, Infrastructure}
+  GasMapQuebec.Api/                  # composition root: controllers, module registration, Hangfire
+tests/GasMapQuebec.ArchitectureTests/  # NetArchTest rules
+GasMapQuebec.AppHost/                # Aspire orchestrator (Postgres + api)
+GasMapQuebec.ServiceDefaults/
 ```
 
 - Each module owns its own `DbContext` + Postgres schema (`pricing`, `fuellog`) and a
@@ -82,7 +82,7 @@ gasmapquebec-api.ServiceDefaults/
 
 ```
 dotnet build gasmapquebec-api.slnx
-dotnet test tests/ArchitectureTests        # 7 rules, all passing
+dotnet test tests/GasMapQuebec.ArchitectureTests        # 7 rules, all passing
 ```
 
 EF migrations already exist (`Migrations/InitialCreate` in each `*.Infrastructure`). To add
@@ -90,8 +90,8 @@ more, use the design-time factories already present, e.g.:
 
 ```
 dotnet ef migrations add <Name> \
-  --project src/Modules/Pricing/Pricing.Infrastructure \
-  --startup-project src/Modules/Pricing/Pricing.Infrastructure \
+  --project src/Modules/Pricing/GasMapQuebec.Pricing.Infrastructure \
+  --startup-project src/Modules/Pricing/GasMapQuebec.Pricing.Infrastructure \
   --context PricingDbContext --output-dir Migrations
 ```
 
@@ -103,7 +103,7 @@ dotnet ef migrations add <Name> \
 
 ## Possible next steps (not started)
 
-- Run via Aspire (`dotnet run --project gasmapquebec-api.AppHost`) once Docker is available,
+- Run via Aspire (`dotnet run --project GasMapQuebec.AppHost`) once Docker is available,
   to confirm migrations + the 10-min refresh job + endpoints against a live DB.
 - Authn/authz for FuelLog (currently `userId` is passed in).
 - Price history/time-series (current design keeps latest price per station+fuel type).
