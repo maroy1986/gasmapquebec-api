@@ -1,4 +1,5 @@
 using System.Globalization;
+using GasMapQuebec.Pricing.Application.Contracts;
 using GasMapQuebec.Pricing.Application.GeoJson;
 using GasMapQuebec.Pricing.Domain;
 
@@ -6,6 +7,39 @@ namespace GasMapQuebec.Pricing.Application;
 
 public sealed class StationQueryService(IStationRepository stationRepository) : IStationQueryService
 {
+    public async Task<StationsResponse> GetStationsAsync(CancellationToken cancellationToken = default)
+    {
+        var stations = await stationRepository.GetAllForReadAsync(cancellationToken);
+
+        var dtos = stations
+            .Select(station => new StationDto(
+                station.Id,
+                station.Name,
+                station.Brand,
+                station.Status,
+                station.Address,
+                station.PostalCode,
+                station.Region,
+                new LocationDto(station.Coordinate.Latitude, station.Coordinate.Longitude),
+                station.Prices
+                    .OrderBy(p => p.FuelType)
+                    .Select(p => new PriceDto(
+                        FuelTypeTokens.ToToken(p.FuelType),
+                        p.PriceCents,
+                        p.IsAvailable,
+                        p.ObservedAtUtc))
+                    .ToList()))
+            .ToList();
+
+        var generatedAt = stations
+            .SelectMany(s => s.Prices)
+            .Select(p => p.ObservedAtUtc)
+            .DefaultIfEmpty(DateTime.UtcNow)
+            .Max();
+
+        return new StationsResponse(generatedAt, dtos.Count, dtos);
+    }
+
     public async Task<StationFeatureCollection> GetGeoJsonAsync(CancellationToken cancellationToken = default)
     {
         var stations = await stationRepository.GetAllForReadAsync(cancellationToken);

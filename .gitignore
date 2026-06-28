@@ -3,3 +3,7 @@ obj/
 /packages/
 riderModule.iml
 /_ReSharper.Caches/
+
+# Deployment secrets — never commit real .env (the .env.example is tracked)
+.env
+deploy/.env

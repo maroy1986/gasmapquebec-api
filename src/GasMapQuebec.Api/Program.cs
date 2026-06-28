@@ -1,3 +1,5 @@
+using System.Text.Encodings.Web;
+using Microsoft.AspNetCore.HttpOverrides;
 using GasMapQuebec.Api;
 using GasMapQuebec.FuelLog.Infrastructure;
 using Hangfire;
@@ -14,7 +16,13 @@ builder.AddServiceDefaults();
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    // Keep accented text (e.g. "Région") literal in v1 JSON responses; camelCase is the default.
+    .AddJsonOptions(o => o.JsonSerializerOptions.Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping);
+
+// Transport compression is handled by the Caddy ingress (encode zstd gzip), which must be
+// configured to SKIP /stations.geojson — that endpoint serves pre-gzipped payload bytes with no
+// Content-Encoding header, so compressing it again would double-gzip and break the mobile client.
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
@@ -44,12 +52,29 @@ builder.Services.AddHangfireServer();
 
 var app = builder.Build();
 
+// Behind the Caddy ingress (TLS terminated at the edge, plain HTTP forwarded to the container):
+// trust X-Forwarded-Proto/For so Request.Scheme and UseHttpsRedirection behave correctly. The
+// only thing that can reach the container's 127.0.0.1-bound port is Caddy, so all proxies are trusted.
+var forwardedHeaders = new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+};
+forwardedHeaders.KnownIPNetworks.Clear();
+forwardedHeaders.KnownProxies.Clear();
+app.UseForwardedHeaders(forwardedHeaders);
+
 app.MapDefaultEndpoints();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+// Apply EF migrations on startup in Development, or in any environment when explicitly opted in
+// (RunMigrationsAtStartup=true) — the controlled step for the single-instance docker-compose deploy.
+if (app.Environment.IsDevelopment() || app.Configuration.GetValue<bool>("RunMigrationsAtStartup"))
 {
     await app.ApplyMigrationsAsync();
+}
+
+// Dev-only tooling (OpenAPI/Scalar, and the unauthenticated Hangfire dashboard).
+if (app.Environment.IsDevelopment())
+{
     app.MapOpenApi();
     app.MapScalarApiReference();
     app.UseHangfireDashboard();

@@ -7,8 +7,9 @@ namespace GasMapQuebec.Api;
 internal static class MigrationExtensions
 {
     /// <summary>
-    /// Applies pending EF Core migrations for every module DbContext.
-    /// Intended for Development; production should migrate via a controlled step.
+    /// Applies pending EF Core migrations for every module DbContext. Runs in Development, or in
+    /// production when opted in via <c>RunMigrationsAtStartup=true</c> (safe for a single instance;
+    /// for multi-replica deployments run migrations as a separate one-shot step instead).
     /// </summary>
     public static async Task ApplyMigrationsAsync(this WebApplication app)
     {

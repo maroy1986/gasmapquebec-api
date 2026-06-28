@@ -1,0 +1,48 @@
+# Production deployment: API + PostgreSQL.
+# Caddy runs on the host and reverse-proxies to the API's 127.0.0.1-bound port (see ./Caddyfile).
+#
+#   cd deploy && cp .env.example .env   # then edit .env
+#   docker compose up -d --build
+#
+name: gasmapquebec
+
+services:
+  postgres:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: gasmapdb
+      POSTGRES_USER: ${POSTGRES_USER:-gasmap}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-gasmap} -d gasmapdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    # No host port published — only the api service (same network) needs the DB.
+
+  api:
+    build:
+      context: ..
+      dockerfile: src/GasMapQuebec.Api/Dockerfile
+    image: gasmapquebec-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_HTTP_PORTS: "8080"
+      # Apply EF migrations on boot (single-instance deploy). See MigrationExtensions.
+      RunMigrationsAtStartup: "true"
+      # Overrides the appsettings.json default (the "__" maps to ConnectionStrings:gasmapdb).
+      # Consumed by both the EF DbContexts and Hangfire (connection name "gasmapdb").
+      ConnectionStrings__gasmapdb: "Host=postgres;Port=5432;Database=gasmapdb;Username=${POSTGRES_USER:-gasmap};Password=${POSTGRES_PASSWORD}"
+    ports:
+      # Bind to localhost ONLY — Caddy on the host proxies to this. Never expose 0.0.0.0.
+      - "127.0.0.1:8080:8080"
+
+volumes:
+  pgdata:

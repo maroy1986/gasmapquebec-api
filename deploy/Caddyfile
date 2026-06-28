@@ -1,0 +1,25 @@
+# Host-installed Caddy (NOT run by docker compose). Place this at /etc/caddy/Caddyfile
+# (or import it), then: sudo systemctl reload caddy
+#
+# Replace api.example.com with your real domain — Caddy auto-provisions HTTPS for it.
+
+api.example.com {
+	# Compress everything EXCEPT the legacy feed: /stations.geojson serves pre-gzipped
+	# payload bytes with no Content-Encoding header, so re-compressing it would double-gzip
+	# and break the mobile client. Everything else (notably /api/v1/stations) is compressed.
+	@compressible not path /stations.geojson
+	encode @compressible zstd gzip
+
+	# The API container is published on the host loopback only (see docker-compose.yml).
+	reverse_proxy 127.0.0.1:8080
+
+	# --- Optional: expose the Hangfire dashboard, protected by Caddy ---------------------
+	# The dashboard is unauthenticated and currently Dev-only in code. To use it in prod you
+	# must (a) enable it for Production in Program.cs, and (b) put auth in front of it here.
+	# Generate a hash with:  caddy hash-password
+	#
+	# @hangfire path /hangfire /hangfire/*
+	# basic_auth @hangfire {
+	# 	admin <PASTE_BCRYPT_HASH_HERE>
+	# }
+}

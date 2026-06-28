@@ -65,25 +65,33 @@ public sealed class Station : AggregateRoot<Guid>
     }
 
     /// <summary>
-    /// Upserts the station's prices from a feed observation: updates the row for each
-    /// reported fuel grade, adds new grades, and drops grades no longer reported.
+    /// Upserts the station's prices from a feed observation: updates the row for each reported
+    /// fuel grade, adds new grades, and drops grades no longer reported. Returns the grades whose
+    /// price or availability actually changed (including newly added ones) so the caller can append
+    /// them to the price history; unchanged grades are not returned and are not rewritten.
     /// </summary>
-    public void ApplyPrices(IReadOnlyCollection<(FuelType FuelType, decimal? PriceCents, bool IsAvailable)> observations, DateTime observedAtUtc)
+    public IReadOnlyList<(FuelType FuelType, decimal? PriceCents, bool IsAvailable)> ApplyPrices(
+        IReadOnlyCollection<(FuelType FuelType, decimal? PriceCents, bool IsAvailable)> observations, DateTime observedAtUtc)
     {
+        var changes = new List<(FuelType FuelType, decimal? PriceCents, bool IsAvailable)>();
+
         foreach (var observation in observations)
         {
             var existing = _prices.FirstOrDefault(p => p.FuelType == observation.FuelType);
             if (existing is null)
             {
                 _prices.Add(FuelPrice.Create(Id, observation.FuelType, observation.PriceCents, observation.IsAvailable, observedAtUtc));
+                changes.Add(observation);
             }
-            else
+            else if (existing.Update(observation.PriceCents, observation.IsAvailable, observedAtUtc))
             {
-                existing.Update(observation.PriceCents, observation.IsAvailable, observedAtUtc);
+                changes.Add(observation);
             }
         }
 
         var reported = observations.Select(o => o.FuelType).ToHashSet();
         _prices.RemoveAll(p => !reported.Contains(p.FuelType));
+
+        return changes;
     }
 }

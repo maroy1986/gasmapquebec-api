@@ -3,12 +3,14 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using GasMapQuebec.Pricing.Application;
+using GasMapQuebec.Pricing.Domain;
 
 namespace GasMapQuebec.Api.Controllers;
 
 [ApiController]
 public sealed class StationsController(
     IStationQueryService stationQueryService,
+    IPriceHistoryQueryService priceHistoryQueryService,
     IPriceRefreshService priceRefreshService) : ControllerBase
 {
     private static readonly JsonSerializerOptions GeoJsonOptions = new()
@@ -17,6 +19,38 @@ public sealed class StationsController(
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
         DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.Never
     };
+
+    /// <summary>Owned v1 contract: flat JSON with numeric prices, fuel tokens, and a stable id.</summary>
+    [HttpGet("/api/v1/stations")]
+    public async Task<IActionResult> GetStations(CancellationToken cancellationToken)
+    {
+        var response = await stationQueryService.GetStationsAsync(cancellationToken);
+        return Ok(response);
+    }
+
+    /// <summary>
+    /// Price history for one station, grouped by fuel grade. Defaults to the last 30 days; narrow
+    /// or extend with <c>?from=</c>/<c>?to=</c> (ISO-8601 UTC) and filter with <c>?fuelType=</c>.
+    /// </summary>
+    [HttpGet("/api/v1/stations/{id:guid}/prices/history")]
+    public async Task<IActionResult> GetPriceHistory(
+        Guid id,
+        [FromQuery] string? fuelType,
+        [FromQuery] DateTime? from,
+        [FromQuery] DateTime? to,
+        CancellationToken cancellationToken)
+    {
+        FuelType? grade = null;
+        if (!string.IsNullOrWhiteSpace(fuelType))
+        {
+            if (!FuelTypeTokens.TryParse(fuelType, out var parsed))
+                return BadRequest($"Unknown fuelType '{fuelType}'. Expected: regular, super, or diesel.");
+            grade = parsed;
+        }
+
+        var history = await priceHistoryQueryService.GetHistoryAsync(id, grade, from, to, cancellationToken);
+        return history is null ? NotFound() : Ok(history);
+    }
 
     /// <summary>
     /// Gzipped GeoJSON FeatureCollection matching the Régie essence Québec feed shape.

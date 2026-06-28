@@ -32,10 +32,19 @@ public sealed class FuelPrice : Entity<Guid>
     internal static FuelPrice Create(Guid stationId, FuelType fuelType, decimal? priceCents, bool isAvailable, DateTime observedAtUtc) =>
         new(Guid.CreateVersion7(), stationId, fuelType, priceCents, isAvailable, observedAtUtc);
 
-    internal void Update(decimal? priceCents, bool isAvailable, DateTime observedAtUtc)
+    /// <summary>
+    /// Applies an observation. Returns <c>true</c> when the price or availability changed (so the
+    /// caller can append a history point); a no-op observation leaves the row — and its
+    /// <see cref="ObservedAtUtc"/> — untouched, which keeps unchanged rows out of every refresh.
+    /// </summary>
+    internal bool Update(decimal? priceCents, bool isAvailable, DateTime observedAtUtc)
     {
+        if (PriceCents == priceCents && IsAvailable == isAvailable)
+            return false;
+
         PriceCents = priceCents;
         IsAvailable = isAvailable;
         ObservedAtUtc = observedAtUtc;
+        return true;
     }
 }

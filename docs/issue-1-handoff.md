@@ -27,9 +27,23 @@ domain."). This file captures the context that isn't obvious from the code alone
   mirrors the id the mobile app derives locally (see `gasmapquebec` Flutter repo,
   `lib/models/station.dart`), so the GUID stays internal and the mobile app is unaffected.
 - Architecture tests use **NetArchTest**.
-- **Mobile compatibility:** the API exposes `GET /stations.geojson` returning a gzipped
-  GeoJSON FeatureCollection byte-compatible with the Régie feed, so switching the mobile
-  app to our API is a one-line change to its feed URL (`lib/services/station_service.dart`).
+- **Read endpoints (additive):**
+  - `GET /stations.geojson` — legacy: gzipped GeoJSON FeatureCollection byte-compatible with the
+    Régie feed, so switching the mobile app is a one-line feed-URL change
+    (`lib/services/station_service.dart`). Unchanged.
+  - `GET /api/v1/stations` — owned v1 contract (latest prices): flat JSON, camelCase, numeric
+    `priceCents`, locale-free `fuelType` tokens (`regular|super|diesel`), named
+    `location.{latitude,longitude}`, stable GUIDv7 `id`, per-price `observedAt`. Adopting it needs a
+    mobile parser update (`lib/models/station.dart` + `station_service.dart`), tracked in the Flutter repo.
+  - `GET /api/v1/stations/{id}/prices/history` — price timeline for one station, grouped by grade;
+    defaults to the last 30 days, with `?from=&to=` (ISO-8601 UTC) and `?fuelType=` filters.
+    404 for unknown station, 400 for a bad `fuelType` token.
+  - **Price freshness semantics:** `observedAt` (v1) and `generated_at` (both endpoints) now mean
+    "price **last changed** at", not "last fetched" — a refresh only writes/stamps a grade when its
+    price or availability actually changed (see Price history below).
+  - **Transport compression is the Caddy ingress's job** (`encode zstd gzip`), not the app's.
+    Caddy must be configured to **skip `/stations.geojson`** (pre-gzipped payload with no
+    `Content-Encoding`; re-compressing it would double-gzip and break the mobile client).
 
 ## Working-style preferences (apply going forward)
 
@@ -58,11 +72,19 @@ GasMapQuebec.ServiceDefaults/
 
 ## Key components
 
-- Pricing: `Station` aggregate (+ `FuelPrice`, `GeoCoordinate`), `IStationRepository` /
-  `IPriceRepository`, `RegieEssenceQuebecPriceService` (downloads/gunzips/parses the feed),
-  `PriceRefreshService` (upsert), `StationQueryService` (GeoJSON projection).
+- Pricing: `Station` aggregate (+ `FuelPrice`, `GeoCoordinate`) holds the **latest** price per grade;
+  `PriceHistoryEntry` is a **separate append-only aggregate** (table `price_history`) for the timeline.
+  `IStationRepository` / `IPriceRepository` / `IPriceHistoryRepository`,
+  `RegieEssenceQuebecPriceService` (downloads/gunzips/parses the feed),
+  `PriceRefreshService` (change-detecting upsert — see Price history), `StationQueryService`
+  (v1 `Contracts/*` + legacy `GeoJson/*`), `PriceHistoryQueryService`.
+- **Price history:** `PriceRefreshService` upserts the latest `FuelPrice` in place *and* appends a
+  `PriceHistoryEntry` only when a grade's price/availability actually changes (or on first sight).
+  `Station.ApplyPrices` returns the changed grades; unchanged grades write nothing, so each
+  10-minute refresh rewrites only what moved and the history table grows with real movements.
 - FuelLog: `FuelLogEntry` aggregate, `IFuelLogRepository`, `FuelLogService`.
-- API: `PriceController`, `StationsController` (`GET /stations.geojson`, `POST /stations/refresh`),
+- API: `PriceController`, `StationsController` (`GET /api/v1/stations`,
+  `GET /api/v1/stations/{id}/prices/history`, `GET /stations.geojson`, `POST /stations/refresh`),
   `FuelLogController`; Hangfire (Postgres storage, schema `hangfire`) with recurring job
   `pricing:refresh-prices` at `*/10 * * * *`; EF migrations applied at startup in Development.
 - Aspire AppHost: `AddPostgres("postgres").WithDataVolume().WithPgAdmin()` + `AddDatabase("gasmapdb")`,
@@ -101,6 +123,27 @@ dotnet ef migrations add <Name> \
 - All work is committed and pushed to `origin/main`.
 - No end-to-end/live run was performed (by request).
 
+## Deployment (docker-compose + host Caddy)
+
+`deploy/` is a self-contained server deploy: `docker-compose.yml` (API + Postgres + volume) plus a
+sample `Caddyfile` and `.env.example`. Caddy runs on the host (not in compose) and reverse-proxies
+to the API, which is published on `127.0.0.1:8080` only (never `0.0.0.0`).
+
+```
+cd deploy && cp .env.example .env    # set POSTGRES_PASSWORD
+docker compose up -d --build
+```
+
+- Runs as `Production`; `RunMigrationsAtStartup=true` applies EF migrations on boot (single
+  instance). `UseForwardedHeaders` trusts Caddy's `X-Forwarded-Proto/For` so HTTPS redirect works.
+- **Transport compression is owned by Caddy** (`encode zstd gzip`); the app no longer compresses.
+  The Caddyfile must exclude `/stations.geojson` (pre-gzipped payload — re-compressing double-gzips
+  and breaks the mobile client).
+- The **Hangfire dashboard is Dev-only** (unauthenticated). To use it in prod, enable it for
+  Production in `Program.cs` and protect `/hangfire` with Caddy `basic_auth` (commented snippet in
+  the Caddyfile).
+- `deploy/.env` is gitignored; only `.env.example` is tracked.
+
 ## Possible next steps (not started)
 
 - Run via Aspire (`dotnet run --project GasMapQuebec.AppHost`) once Docker is available,
@@ -108,4 +151,3 @@ dotnet ef migrations add <Name> \
 - Authn/authz for FuelLog (currently `userId` is passed in).
 - Price history/time-series (current design keeps latest price per station+fuel type).
 - Switch the mobile app's feed URL to the API's `/stations.geojson` once deployed.
-```

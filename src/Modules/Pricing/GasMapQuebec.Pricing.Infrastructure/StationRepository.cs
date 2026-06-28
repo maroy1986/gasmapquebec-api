@@ -14,6 +14,9 @@ internal sealed class StationRepository(PricingDbContext dbContext) : IStationRe
     public async Task<IReadOnlyList<Station>> GetAllForReadAsync(CancellationToken cancellationToken = default) =>
         await dbContext.Stations.Include(s => s.Prices).AsNoTracking().ToListAsync(cancellationToken);
 
+    public Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default) =>
+        dbContext.Stations.AnyAsync(s => s.Id == id, cancellationToken);
+
     public async Task AddAsync(Station entity, CancellationToken cancellationToken = default) =>
         await dbContext.Stations.AddAsync(entity, cancellationToken);
 

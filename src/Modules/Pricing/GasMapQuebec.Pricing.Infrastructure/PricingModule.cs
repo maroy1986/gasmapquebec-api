@@ -18,8 +18,10 @@ public static class PricingModule
         builder.Services.AddScoped<IPricingUnitOfWork>(sp => sp.GetRequiredService<PricingDbContext>());
         builder.Services.AddScoped<IStationRepository, StationRepository>();
         builder.Services.AddScoped<IPriceRepository, PriceRepository>();
+        builder.Services.AddScoped<IPriceHistoryRepository, PriceHistoryRepository>();
         builder.Services.AddScoped<IPriceRefreshService, PriceRefreshService>();
         builder.Services.AddScoped<IStationQueryService, StationQueryService>();
+        builder.Services.AddScoped<IPriceHistoryQueryService, PriceHistoryQueryService>();
 
         builder.Services
             .AddOptions<RegieFeedOptions>()

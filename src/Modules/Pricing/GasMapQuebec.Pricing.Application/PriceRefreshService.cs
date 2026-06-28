@@ -6,6 +6,7 @@ namespace GasMapQuebec.Pricing.Application;
 public sealed class PriceRefreshService(
     IPriceService priceService,
     IStationRepository stationRepository,
+    IPriceHistoryRepository priceHistoryRepository,
     IPricingUnitOfWork unitOfWork,
     ILogger<PriceRefreshService> logger) : IPriceRefreshService
 {
@@ -22,7 +23,7 @@ public sealed class PriceRefreshService(
             .ToDictionary(s => s.CoordinateKey);
 
         var added = 0;
-        var updated = 0;
+        var history = new List<PriceHistoryEntry>();
 
         foreach (var record in snapshot.Stations)
         {
@@ -34,23 +35,35 @@ public sealed class PriceRefreshService(
 
             if (existing.TryGetValue(key, out var station))
             {
+                // Existing stations are change-tracked (loaded with tracking above), so we mutate
+                // them and let EF write only the rows that actually changed — no repository.Update,
+                // which would force-mark the whole station + price graph as modified every run.
                 station.UpdateDetails(record.Name, record.Brand, record.Status, record.Address, record.PostalCode, record.Region);
-                station.ApplyPrices(observations, snapshot.GeneratedAtUtc);
-                stationRepository.Update(station);
-                updated++;
             }
             else
             {
                 station = Station.Create(coordinate, record.Name, record.Brand, record.Status, record.Address, record.PostalCode, record.Region);
-                station.ApplyPrices(observations, snapshot.GeneratedAtUtc);
                 await stationRepository.AddAsync(station, cancellationToken);
                 existing[key] = station;
                 added++;
             }
+
+            // ApplyPrices returns only the grades that actually changed (or are new); append a
+            // history point for each so the price timeline grows with real movements, not fetches.
+            foreach (var change in station.ApplyPrices(observations, snapshot.GeneratedAtUtc))
+            {
+                history.Add(PriceHistoryEntry.Create(
+                    station.Id, change.FuelType, change.PriceCents, change.IsAvailable, snapshot.GeneratedAtUtc));
+            }
         }
 
-        await unitOfWork.SaveChangesAsync(cancellationToken);
-        logger.LogInformation("Price refresh complete: {Added} added, {Updated} updated.", added, updated);
-        return added + updated;
+        if (history.Count > 0)
+            await priceHistoryRepository.AddRangeAsync(history, cancellationToken);
+
+        var rowsWritten = await unitOfWork.SaveChangesAsync(cancellationToken);
+        logger.LogInformation(
+            "Price refresh complete: {Added} new stations, {Changes} price changes recorded, {RowsWritten} rows written.",
+            added, history.Count, rowsWritten);
+        return snapshot.Stations.Count;
     }
 }
