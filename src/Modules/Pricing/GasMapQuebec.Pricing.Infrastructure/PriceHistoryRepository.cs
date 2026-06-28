@@ -15,7 +15,9 @@ internal sealed class PriceHistoryRepository(PricingDbContext dbContext) : IPric
             .Where(h => h.StationId == stationId && h.ObservedAtUtc >= fromUtc && h.ObservedAtUtc <= toUtc);
 
         if (fuelType is not null)
+        {
             query = query.Where(h => h.FuelType == fuelType);
+        }
 
         return await query
             .OrderBy(h => h.FuelType)

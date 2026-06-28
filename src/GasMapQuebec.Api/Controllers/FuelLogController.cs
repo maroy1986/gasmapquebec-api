@@ -25,7 +25,9 @@ public sealed class FuelLogController(IFuelLogService fuelLogService) : Controll
     public async Task<IActionResult> GetForUser([FromQuery] Guid userId, CancellationToken cancellationToken)
     {
         if (userId == Guid.Empty)
+        {
             return BadRequest("userId query parameter is required.");
+        }
 
         var entries = await fuelLogService.GetForUserAsync(userId, cancellationToken);
         return Ok(entries);

@@ -9,8 +9,8 @@ namespace GasMapQuebec.Api.Controllers;
 
 [ApiController]
 public sealed class StationsController(
-    IStationQueryService stationQueryService,
-    IPriceHistoryQueryService priceHistoryQueryService,
+    IStationService stationService,
+    IPriceHistoryService priceHistoryService,
     IPriceRefreshService priceRefreshService) : ControllerBase
 {
     private static readonly JsonSerializerOptions GeoJsonOptions = new()
@@ -24,7 +24,7 @@ public sealed class StationsController(
     [HttpGet("/api/v1/stations")]
     public async Task<IActionResult> GetStations(CancellationToken cancellationToken)
     {
-        var response = await stationQueryService.GetStationsAsync(cancellationToken);
+        var response = await stationService.GetStationsAsync(cancellationToken);
         return Ok(response);
     }
 
@@ -44,11 +44,14 @@ public sealed class StationsController(
         if (!string.IsNullOrWhiteSpace(fuelType))
         {
             if (!FuelTypeTokens.TryParse(fuelType, out var parsed))
+            {
                 return BadRequest($"Unknown fuelType '{fuelType}'. Expected: regular, super, or diesel.");
+            }
+
             grade = parsed;
         }
 
-        var history = await priceHistoryQueryService.GetHistoryAsync(id, grade, from, to, cancellationToken);
+        var history = await priceHistoryService.GetHistoryAsync(id, grade, from, to, cancellationToken);
         return history is null ? NotFound() : Ok(history);
     }
 
@@ -59,7 +62,7 @@ public sealed class StationsController(
     [HttpGet("/stations.geojson")]
     public async Task GetGeoJson(CancellationToken cancellationToken)
     {
-        var featureCollection = await stationQueryService.GetGeoJsonAsync(cancellationToken);
+        var featureCollection = await stationService.GetGeoJsonAsync(cancellationToken);
 
         Response.ContentType = "application/json; charset=utf-8";
         await using var gzip = new GZipStream(Response.Body, CompressionLevel.Optimal);

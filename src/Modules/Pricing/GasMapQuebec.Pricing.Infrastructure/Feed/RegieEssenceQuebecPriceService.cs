@@ -48,7 +48,9 @@ internal sealed class RegieEssenceQuebecPriceService(
         }
 
         if (skipped > 0)
+        {
             logger.LogWarning("Skipped {Skipped} feed features with missing coordinates or name.", skipped);
+        }
 
         return new StationPriceSnapshot(generatedAt, stations);
     }
@@ -58,7 +60,9 @@ internal sealed class RegieEssenceQuebecPriceService(
         var coordinates = feature.Geometry?.Coordinates;
         var props = feature.Properties;
         if (coordinates is not { Length: >= 2 } || props is null || string.IsNullOrWhiteSpace(props.Name))
+        {
             return null;
+        }
 
         // GeoJSON order is [longitude, latitude].
         var longitude = coordinates[0];
@@ -91,14 +95,18 @@ internal sealed class RegieEssenceQuebecPriceService(
     private static decimal? ParsePrice(string? raw)
     {
         if (string.IsNullOrWhiteSpace(raw))
+        {
             return null;
+        }
 
         Span<char> buffer = stackalloc char[raw.Length];
         var length = 0;
         foreach (var c in raw)
         {
             if (char.IsAsciiDigit(c) || c == '.')
+            {
                 buffer[length++] = c;
+            }
         }
 
         return decimal.TryParse(buffer[..length], NumberStyles.Number, CultureInfo.InvariantCulture, out var value)

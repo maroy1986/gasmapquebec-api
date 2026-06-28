@@ -5,7 +5,7 @@ using GasMapQuebec.Pricing.Domain;
 
 namespace GasMapQuebec.Pricing.Application;
 
-public sealed class StationQueryService(IStationRepository stationRepository) : IStationQueryService
+public sealed class StationService(IStationRepository stationRepository) : IStationService
 {
     public async Task<StationsResponse> GetStationsAsync(CancellationToken cancellationToken = default)
     {

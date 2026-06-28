@@ -9,9 +9,14 @@ public class Result
     protected Result(bool isSuccess, Error error)
     {
         if (isSuccess && error != Error.None)
+        {
             throw new InvalidOperationException("A successful result cannot carry an error.");
+        }
+
         if (!isSuccess && error == Error.None)
+        {
             throw new InvalidOperationException("A failed result must carry an error.");
+        }
 
         IsSuccess = isSuccess;
         Error = error;

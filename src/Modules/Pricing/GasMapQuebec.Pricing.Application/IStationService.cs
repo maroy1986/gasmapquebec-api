@@ -7,7 +7,7 @@ namespace GasMapQuebec.Pricing.Application;
 /// Read-side queries for stations and prices: the owned v1 contract plus the
 /// legacy Régie-compatible GeoJSON projection.
 /// </summary>
-public interface IStationQueryService
+public interface IStationService
 {
     /// <summary>Owned v1 contract: flat JSON with numeric prices and fuel tokens.</summary>
     Task<StationsResponse> GetStationsAsync(CancellationToken cancellationToken = default);

@@ -3,9 +3,9 @@ using GasMapQuebec.Pricing.Domain;
 
 namespace GasMapQuebec.Pricing.Application;
 
-public sealed class PriceHistoryQueryService(
+public sealed class PriceHistoryService(
     IStationRepository stationRepository,
-    IPriceHistoryRepository priceHistoryRepository) : IPriceHistoryQueryService
+    IPriceHistoryRepository priceHistoryRepository) : IPriceHistoryService
 {
     /// <summary>Default look-back when the caller doesn't specify a window.</summary>
     public static readonly TimeSpan DefaultWindow = TimeSpan.FromDays(30);
@@ -18,7 +18,9 @@ public sealed class PriceHistoryQueryService(
         CancellationToken cancellationToken = default)
     {
         if (!await stationRepository.ExistsAsync(stationId, cancellationToken))
+        {
             return null;
+        }
 
         var to = (toUtc ?? DateTime.UtcNow).ToUniversalTime();
         var from = (fromUtc ?? to - DefaultWindow).ToUniversalTime();

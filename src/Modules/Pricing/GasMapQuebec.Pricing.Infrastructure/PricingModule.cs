@@ -20,8 +20,8 @@ public static class PricingModule
         builder.Services.AddScoped<IPriceRepository, PriceRepository>();
         builder.Services.AddScoped<IPriceHistoryRepository, PriceHistoryRepository>();
         builder.Services.AddScoped<IPriceRefreshService, PriceRefreshService>();
-        builder.Services.AddScoped<IStationQueryService, StationQueryService>();
-        builder.Services.AddScoped<IPriceHistoryQueryService, PriceHistoryQueryService>();
+        builder.Services.AddScoped<IStationService, StationService>();
+        builder.Services.AddScoped<IPriceHistoryService, PriceHistoryService>();
 
         builder.Services
             .AddOptions<RegieFeedOptions>()

@@ -60,11 +60,19 @@ public sealed class FuelLogEntry : AggregateRoot<Guid>
         string? notes = null)
     {
         if (userId == Guid.Empty)
+        {
             throw new ArgumentException("UserId is required.", nameof(userId));
+        }
+
         if (litres <= 0)
+        {
             throw new ArgumentOutOfRangeException(nameof(litres), litres, "Litres must be positive.");
+        }
+
         if (totalCost < 0)
+        {
             throw new ArgumentOutOfRangeException(nameof(totalCost), totalCost, "Total cost cannot be negative.");
+        }
 
         return new FuelLogEntry(
             Guid.CreateVersion7(),

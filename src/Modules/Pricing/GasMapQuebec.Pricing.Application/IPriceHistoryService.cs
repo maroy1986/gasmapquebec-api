@@ -3,7 +3,7 @@ using GasMapQuebec.Pricing.Domain;
 
 namespace GasMapQuebec.Pricing.Application;
 
-public interface IPriceHistoryQueryService
+public interface IPriceHistoryService
 {
     /// <summary>
     /// Price timeline for a station, grouped by fuel grade. Defaults to the last 30 days when the

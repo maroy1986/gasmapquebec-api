@@ -58,7 +58,9 @@ public sealed class PriceRefreshService(
         }
 
         if (history.Count > 0)
+        {
             await priceHistoryRepository.AddRangeAsync(history, cancellationToken);
+        }
 
         var rowsWritten = await unitOfWork.SaveChangesAsync(cancellationToken);
         logger.LogInformation(

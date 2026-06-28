@@ -40,7 +40,9 @@ public sealed class FuelPrice : Entity<Guid>
     internal bool Update(decimal? priceCents, bool isAvailable, DateTime observedAtUtc)
     {
         if (PriceCents == priceCents && IsAvailable == isAvailable)
+        {
             return false;
+        }
 
         PriceCents = priceCents;
         IsAvailable = isAvailable;
