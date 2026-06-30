@@ -5,11 +5,17 @@ using GasMapQuebec.Pricing.Domain;
 
 namespace GasMapQuebec.Pricing.Application;
 
-public sealed class StationService(IStationRepository stationRepository) : IStationService
+public sealed class StationService(
+    IStationRepository stationRepository,
+    IPriceCorrectionRepository correctionRepository) : IStationService
 {
     public async Task<StationsResponse> GetStationsAsync(CancellationToken cancellationToken = default)
     {
         var stations = await stationRepository.GetAllForReadAsync(cancellationToken);
+
+        // Latest accepted community correction per (station, grade), surfaced beside the official price.
+        var community = (await correctionRepository.GetLatestAcceptedAsync(cancellationToken))
+            .ToDictionary(c => (c.StationId, c.FuelType));
 
         var dtos = stations
             .Select(station => new StationDto(
@@ -23,11 +29,17 @@ public sealed class StationService(IStationRepository stationRepository) : IStat
                 new LocationDto(station.Coordinate.Latitude, station.Coordinate.Longitude),
                 station.Prices
                     .OrderBy(p => p.FuelType)
-                    .Select(p => new PriceDto(
-                        FuelTypeTokens.ToToken(p.FuelType),
-                        p.PriceCents,
-                        p.IsAvailable,
-                        p.ObservedAtUtc))
+                    .Select(p =>
+                    {
+                        community.TryGetValue((station.Id, p.FuelType), out var reported);
+                        return new PriceDto(
+                            FuelTypeTokens.ToToken(p.FuelType),
+                            p.PriceCents,
+                            p.IsAvailable,
+                            p.ObservedAtUtc,
+                            reported?.SubmittedPriceCents,
+                            reported?.SubmittedAtUtc);
+                    })
                     .ToList()))
             .ToList();
 

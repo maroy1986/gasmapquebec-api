@@ -7,3 +7,6 @@ riderModule.iml
 # Deployment secrets — never commit real .env (the .env.example is tracked)
 .env
 deploy/.env
+# Test result output (e.g. from `dotnet test --results-directory`)
+test-results/
+TestResults/

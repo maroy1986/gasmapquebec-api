@@ -1,6 +1,7 @@
 using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.HttpOverrides;
 using GasMapQuebec.Api;
+using GasMapQuebec.Api.Security;
 using GasMapQuebec.FuelLog.Infrastructure;
 using Hangfire;
 using Hangfire.Console;
@@ -30,6 +31,9 @@ builder.Services.AddOpenApi();
 // Modules
 builder.AddPricingModule();
 builder.AddFuelLogModule();
+
+// Mobile-app authenticity (HMAC) + per-device throttle for write endpoints.
+builder.Services.AddCorrectionSecurity(builder.Configuration);
 
 // Hangfire — recurring background jobs, stored in the shared PostgreSQL database.
 var hangfireConnectionString = builder.Configuration.GetConnectionString(PricingModule.DatabaseConnectionName)
@@ -81,6 +85,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseRateLimiter();
 
 app.UseAuthorization();
 

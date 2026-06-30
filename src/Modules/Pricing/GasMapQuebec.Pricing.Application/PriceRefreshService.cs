@@ -7,6 +7,7 @@ public sealed class PriceRefreshService(
     IPriceService priceService,
     IStationRepository stationRepository,
     IPriceHistoryRepository priceHistoryRepository,
+    IPriceCorrectionRepository priceCorrectionRepository,
     IPricingUnitOfWork unitOfWork,
     ILogger<PriceRefreshService> logger) : IPriceRefreshService
 {
@@ -24,6 +25,9 @@ public sealed class PriceRefreshService(
 
         var added = 0;
         var history = new List<PriceHistoryEntry>();
+        // (station, grade) pairs whose official price changed this run — their community
+        // corrections are now superseded and get marked outdated below.
+        var changedGrades = new List<(Guid StationId, FuelType FuelType)>();
 
         foreach (var record in snapshot.Stations)
         {
@@ -54,12 +58,20 @@ public sealed class PriceRefreshService(
             {
                 history.Add(PriceHistoryEntry.Create(
                     station.Id, change.FuelType, change.PriceCents, change.IsAvailable, snapshot.GeneratedAtUtc));
+                changedGrades.Add((station.Id, change.FuelType));
             }
         }
 
         if (history.Count > 0)
         {
             await priceHistoryRepository.AddRangeAsync(history, cancellationToken);
+        }
+
+        // A newer official price supersedes any community correction for that grade.
+        if (changedGrades.Count > 0)
+        {
+            await priceCorrectionRepository.MarkAcceptedOutdatedAsync(
+                changedGrades, snapshot.GeneratedAtUtc, cancellationToken);
         }
 
         var rowsWritten = await unitOfWork.SaveChangesAsync(cancellationToken);

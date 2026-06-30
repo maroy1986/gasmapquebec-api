@@ -19,13 +19,19 @@ public static class PricingModule
         builder.Services.AddScoped<IStationRepository, StationRepository>();
         builder.Services.AddScoped<IPriceRepository, PriceRepository>();
         builder.Services.AddScoped<IPriceHistoryRepository, PriceHistoryRepository>();
+        builder.Services.AddScoped<IPriceCorrectionRepository, PriceCorrectionRepository>();
         builder.Services.AddScoped<IPriceRefreshService, PriceRefreshService>();
         builder.Services.AddScoped<IStationService, StationService>();
         builder.Services.AddScoped<IPriceHistoryService, PriceHistoryService>();
+        builder.Services.AddScoped<IPriceCorrectionService, PriceCorrectionService>();
 
         builder.Services
             .AddOptions<RegieFeedOptions>()
             .Bind(builder.Configuration.GetSection(RegieFeedOptions.SectionName));
+
+        builder.Services
+            .AddOptions<PriceCorrectionOptions>()
+            .Bind(builder.Configuration.GetSection(PriceCorrectionOptions.SectionName));
 
         builder.Services.AddHttpClient<IPriceService, RegieEssenceQuebecPriceService>();
 

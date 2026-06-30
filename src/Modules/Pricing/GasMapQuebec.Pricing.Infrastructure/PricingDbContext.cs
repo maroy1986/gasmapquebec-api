@@ -11,6 +11,7 @@ public sealed class PricingDbContext(DbContextOptions<PricingDbContext> options)
 
     public DbSet<Station> Stations => Set<Station>();
     public DbSet<PriceHistoryEntry> PriceHistory => Set<PriceHistoryEntry>();
+    public DbSet<PriceCorrection> PriceCorrections => Set<PriceCorrection>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -1,10 +1,12 @@
 <Solution>
-  <Folder Name="/Infra/">
-    <Project Path="GasMapQuebec.AppHost/GasMapQuebec.AppHost.csproj" />
-    <Project Path="GasMapQuebec.ServiceDefaults/GasMapQuebec.ServiceDefaults.csproj" />
-  </Folder>
+  <Folder Name="/Infra/" />
   <Folder Name="/Solution Items/">
     <File Path="compose.yaml" />
+  </Folder>
+  <Folder Name="/Solution Items/doc/">
+    <File Path="docs/issue-1-handoff.md" />
+    <File Path="docs/price-corrections-plan.md" />
+    <File Path="docs/testing-hmac-endpoints.md" />
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/GasMapQuebec.Api/GasMapQuebec.Api.csproj" />
@@ -17,12 +19,15 @@
     <Project Path="src/Modules/Pricing/GasMapQuebec.Pricing.Application/GasMapQuebec.Pricing.Application.csproj" />
     <Project Path="src/Modules/Pricing/GasMapQuebec.Pricing.Infrastructure/GasMapQuebec.Pricing.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/src/Modules/" />
   <Folder Name="/src/Modules/FuelLog/">
     <Project Path="src/Modules/FuelLog/GasMapQuebec.FuelLog.Domain/GasMapQuebec.FuelLog.Domain.csproj" />
     <Project Path="src/Modules/FuelLog/GasMapQuebec.FuelLog.Application/GasMapQuebec.FuelLog.Application.csproj" />
     <Project Path="src/Modules/FuelLog/GasMapQuebec.FuelLog.Infrastructure/GasMapQuebec.FuelLog.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/GasMapQuebec.Api.IntegrationTests/GasMapQuebec.Api.IntegrationTests.csproj" />
     <Project Path="tests/GasMapQuebec.ArchitectureTests/GasMapQuebec.ArchitectureTests.csproj" />
+    <Project Path="tests/GasMapQuebec.Pricing.UnitTests/GasMapQuebec.Pricing.UnitTests.csproj" />
   </Folder>
 </Solution>
