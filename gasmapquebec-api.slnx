@@ -1,5 +1,8 @@
 <Solution>
-  <Folder Name="/Infra/" />
+  <Folder Name="/Infra/">
+    <Project Path="Infrastructure/Aspire/GasMapQuebec.AppHost/GasMapQuebec.AppHost.csproj" />
+    <Project Path="Infrastructure/Aspire/GasMapQuebec.ServiceDefaults/GasMapQuebec.ServiceDefaults.csproj" />
+  </Folder>
   <Folder Name="/Solution Items/">
     <File Path="compose.yaml" />
   </Folder>

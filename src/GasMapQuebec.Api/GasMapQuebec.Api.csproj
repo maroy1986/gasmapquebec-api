@@ -26,7 +26,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\GasMapQuebec.ServiceDefaults\GasMapQuebec.ServiceDefaults.csproj" />
+      <ProjectReference Include="..\..\Infrastructure\Aspire\GasMapQuebec.ServiceDefaults\GasMapQuebec.ServiceDefaults.csproj" />
       <ProjectReference Include="..\Modules\Pricing\GasMapQuebec.Pricing.Infrastructure\GasMapQuebec.Pricing.Infrastructure.csproj" />
       <ProjectReference Include="..\Modules\Pricing\GasMapQuebec.Pricing.Application\GasMapQuebec.Pricing.Application.csproj" />
       <ProjectReference Include="..\Modules\FuelLog\GasMapQuebec.FuelLog.Infrastructure\GasMapQuebec.FuelLog.Infrastructure.csproj" />
