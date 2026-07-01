@@ -9,7 +9,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\..\src\GasMapQuebec.Api\GasMapQuebec.Api.csproj" />
+      <ProjectReference Include="..\..\..\src\API\GasMapQuebec.Api\GasMapQuebec.Api.csproj" />
     </ItemGroup>
 
     <ItemGroup>

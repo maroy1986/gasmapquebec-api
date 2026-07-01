@@ -24,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\GasMapQuebec.Api\GasMapQuebec.Api.csproj" />
+    <ProjectReference Include="..\..\src\API\GasMapQuebec.Api\GasMapQuebec.Api.csproj" />
     <ProjectReference Include="..\..\src\Modules\Pricing\GasMapQuebec.Pricing.Application\GasMapQuebec.Pricing.Application.csproj" />
     <ProjectReference Include="..\..\src\Modules\Pricing\GasMapQuebec.Pricing.Domain\GasMapQuebec.Pricing.Domain.csproj" />
   </ItemGroup>
